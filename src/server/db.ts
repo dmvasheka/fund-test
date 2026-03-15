@@ -3,6 +3,7 @@ import { MONGO_URL, DB_NAME, COLLECTION_NAME } from "./server.config.js";
 
 let client: MongoClient;
 let collection: Collection;
+const pendingInserts = new Set<Promise<void>>();
 
 export async function connect(): Promise<void> {
   client = new MongoClient(MONGO_URL);
@@ -10,14 +11,16 @@ export async function connect(): Promise<void> {
   collection = client.db(DB_NAME).collection(COLLECTION_NAME);
 }
 
-export async function insertEvents(events: Document[]): Promise<void> {
-  try {
-    await collection.insertMany(events);
-  } catch (err) {
-    console.error("Failed to insert events:", err);
-  }
+export function insertEvents(events: Document[]): void {
+  const promise = collection.insertMany(events).then(
+    () => {},
+    (err) => console.error("Failed to insert events:", err),
+  );
+  pendingInserts.add(promise);
+  promise.finally(() => pendingInserts.delete(promise));
 }
 
 export async function disconnect(): Promise<void> {
+  await Promise.all(pendingInserts);
   await client?.close();
 }

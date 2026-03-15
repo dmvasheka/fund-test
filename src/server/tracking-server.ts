@@ -82,7 +82,7 @@ export function createTrackingServer() {
     reply.code(200).send();
 
     // Fire-and-forget: respond before DB insert (per spec)
-    void insertEvents(request.body);
+    insertEvents(request.body);
   });
 
   return app;
