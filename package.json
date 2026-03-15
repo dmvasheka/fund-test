@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build:tracker": "esbuild src/tracker/tracker.ts --bundle --format=iife --global-name=tracker --outfile=dist/tracker.js",
-    "build:server": "tsc",
+    "build:server": "tsc && cp src/server/page.html dist/server/",
     "build": "npm run build:tracker & npm run build:server & wait",
     "start": "node dist/server/index.js",
     "dev": "npm run build:tracker && tsx src/server/index.ts",
