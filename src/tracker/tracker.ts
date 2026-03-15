@@ -112,10 +112,7 @@ document.addEventListener("visibilitychange", () => {
 
 // Pre-navigation send: waits for the in-flight send() to finish,
 // then delivers any remaining buffered events before the page navigates.
-function shouldInterceptClick(
-  e: MouseEvent,
-  link: HTMLAnchorElement,
-): boolean {
+function shouldInterceptClick(e: MouseEvent, link: HTMLAnchorElement): boolean {
   if (e.defaultPrevented || e.button !== 0) return false;
   if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return false;
   if (link.target === "_blank" || link.hasAttribute("download")) return false;
