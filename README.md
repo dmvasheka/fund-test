@@ -1,54 +1,61 @@
 # Activity Tracker
 
-Website visitor activity tracking service. A browser-side tracker collects user events (page views, clicks, navigation) and sends them to a backend that stores them in MongoDB.
+Сервис трекинга активности посетителя сайта. Браузерный трекер собирает события пользователя и отправляет их на бекенд, который сохраняет их в MongoDB.
 
-## Prerequisites
+## Требования
 
 - Node.js 20+
-- MongoDB running on `localhost:27017`
+- MongoDB, запущенный на `localhost:27017`
 
-## Install
+По умолчанию приложение подключается к MongoDB по адресу `mongodb://localhost:27017`.
+Если у вас другой адрес, порт или включена авторизация, измените `MONGO_URL` в [src/server/server.config.ts](src/server/server.config.ts).
 
-```
+## Установка
+
+```bash
 npm install
 ```
 
-## Build
+## Сборка
 
-```
+```bash
 npm run build
 ```
 
-## Run
+## Запуск
 
-```
+```bash
 npm start
 ```
 
-The app starts two servers:
+Приложение поднимает два сервера:
 
-- `http://localhost:50000` — website (pages `/1.html`, `/2.html`, `/3.html`)
-- `http://localhost:8888` — tracking API (`GET /tracker`, `POST /track`)
+- `http://localhost:50000` - сайт со страницами `/1.html`, `/2.html`, `/3.html`
+- `http://localhost:8888` - API трекинга (`GET /tracker`, `POST /track`)
 
-## Development
+## Разработка
 
-```
+```bash
 npm run dev
 ```
 
-## Format
+## Форматирование
 
-```
+```bash
 npm run format
 ```
 
-## Verification
+## Ручная проверка
 
-After `npm start`, open Chrome DevTools (Network tab) and check:
+После `npm start` откройте Chrome DevTools, вкладку `Network`, и проверьте:
 
-1. Open `http://localhost:50000/1.html` — page loads, tracker script is fetched asynchronously from `:8888/tracker`
-2. Within ~1 second, a `POST /track` request appears with `pageview` and `test` events
-3. The POST uses `Content-Type: text/plain` — no `OPTIONS` preflight request
-4. Click "Click me" — a `click-button` event is sent
-5. Click a page link — navigation is intercepted, buffered events are delivered to the backend, then the page transitions
-6. Check MongoDB: `mongosh tracker --eval "db.tracks.find().pretty()"`
+1. Откройте `http://localhost:50000/1.html` - страница загружается, а скрипт трекера асинхронно запрашивается с `:8888/tracker`.
+2. Примерно через секунду появляется `POST /track` с событиями `pageview` и `test`.
+3. Запрос уходит с `Content-Type: text/plain` и без `OPTIONS` preflight.
+4. Нажатие на кнопку `Click me` отправляет событие `click-button`.
+5. Клик по ссылке перехватывается, буферизованные события отправляются на бекенд, затем происходит переход на новую страницу.
+6. События сохраняются в MongoDB:
+
+```bash
+mongosh tracker --eval "db.tracks.find().pretty()"
+```
