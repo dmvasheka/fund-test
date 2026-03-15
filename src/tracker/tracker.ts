@@ -87,7 +87,7 @@ export function track(event: string, ...tags: string[]): void {
 }
 
 // Page unload send: best-effort via sendBeacon (fire-and-forget).
-// No retry — the page is going away, so the buffer would be lost anyway.
+// No retry, the page is going away, so the buffer would be lost anyway.
 function sendOnUnload(): void {
   if (buffer.length === 0) return;
   cancelTimer();
@@ -136,7 +136,7 @@ async function sendBeforeNavigation(): Promise<void> {
       keepalive: true,
     });
   } catch {
-    // Best effort — navigate regardless
+    // Best effort, navigate regardless
   }
 }
 
