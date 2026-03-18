@@ -1,47 +1,20 @@
 import Fastify from "fastify";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { z } from "zod";
 import { insertEvents } from "./db.js";
 
-interface TrackEvent {
-  [key: string]: unknown;
-  event: string;
-  tags: string[];
-  url: string;
-  title: string;
-  ts: number;
-}
+const TrackEventSchema = z
+  .object({
+    event: z.string().min(1),
+    tags: z.array(z.string()),
+    url: z.string().min(1),
+    title: z.string(),
+    ts: z.number().positive(),
+  })
+  .strict();
 
-const ALLOWED_KEYS = new Set(["event", "tags", "url", "title", "ts"]);
-
-function isValidEvent(item: unknown): item is TrackEvent {
-  if (typeof item !== "object" || item === null) return false;
-  const obj = item as Record<string, unknown>;
-
-  const keys = Object.keys(obj);
-  if (
-    keys.length !== ALLOWED_KEYS.size ||
-    !keys.every((k) => ALLOWED_KEYS.has(k))
-  ) {
-    return false;
-  }
-
-  return (
-    typeof obj.event === "string" &&
-    obj.event.length > 0 &&
-    Array.isArray(obj.tags) &&
-    obj.tags.every((t: unknown) => typeof t === "string") &&
-    typeof obj.url === "string" &&
-    obj.url.length > 0 &&
-    typeof obj.title === "string" &&
-    typeof obj.ts === "number" &&
-    obj.ts > 0
-  );
-}
-
-function isValidPayload(body: unknown): body is TrackEvent[] {
-  return Array.isArray(body) && body.length > 0 && body.every(isValidEvent);
-}
+const TrackEventsSchema = z.array(TrackEventSchema).min(1);
 
 export function createTrackingServer() {
   const app = Fastify();
@@ -66,7 +39,7 @@ export function createTrackingServer() {
     done();
   });
 
-  const trackerPath = join(__dirname, "..", "tracker.js");
+  const trackerPath = join(process.cwd(), "dist", "tracker.js");
   const trackerJs = readFileSync(trackerPath, "utf-8");
 
   app.get("/tracker", (_request, reply) => {
@@ -74,7 +47,9 @@ export function createTrackingServer() {
   });
 
   app.post("/track", (request, reply) => {
-    if (!isValidPayload(request.body)) {
+    const parsed = TrackEventsSchema.safeParse(request.body);
+
+    if (!parsed.success) {
       reply.code(422).send();
       return;
     }
@@ -82,7 +57,7 @@ export function createTrackingServer() {
     reply.code(200).send();
 
     // Fire-and-forget: respond before DB insert (per spec)
-    insertEvents(request.body);
+    insertEvents(parsed.data);
   });
 
   return app;
