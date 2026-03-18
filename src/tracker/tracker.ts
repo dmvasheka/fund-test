@@ -47,6 +47,7 @@ async function send(): Promise<void> {
 
   let sendPromise: Promise<void>;
 
+
   sendPromise = (async () => {
     try {
       const response = await fetch(TRACK_URL, {
