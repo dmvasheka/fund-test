@@ -62,7 +62,7 @@ async function send(): Promise<void> {
     } catch {
       setTimeout(() => {
         returnToBuffer(events);
-        void send();
+        scheduleFlush();
       }, FLUSH_INTERVAL);
     }
   })();
